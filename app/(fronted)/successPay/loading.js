@@ -1,3 +1,5 @@
+"use client"; // Add this at the very top
+
 export default function Loading() {
   return (
     <div style={{
