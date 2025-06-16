@@ -60,7 +60,7 @@ const PrivacyPolicy = () => {
           <li>To personalize your experience on our platform</li>
           <li>To process transactions and send relevant updates regarding your bookings</li>
           <li>To send promotional content and offers (with your consent)</li>
-          <li>To monitor and analyze usage patterns to improve the website's performance</li>
+          <li>To monitor and analyze usage patterns to improve the website s performance</li>
         </ul>
       </section>
 

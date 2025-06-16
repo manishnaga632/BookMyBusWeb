@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { toast, Toaster } from "react-hot-toast";
+import Link from "next/link";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -90,8 +91,8 @@ export default function ContactPage() {
         <div className="row py-5">
           <div className="col-12 text-center">
             <h1 className="display-2 text-uppercase text-white mb-md-4">Contact Bus Support</h1>
-            <a href="/" className="btn btn-primary py-md-3 px-md-5 me-3">Home</a>
-            <a href="/contact" className="btn btn-light py-md-3 px-md-5">Contact</a>
+            <Link href="/" className="btn btn-primary py-md-3 px-md-5 me-3">Home</Link>
+            <Link href="/contact" className="btn btn-light py-md-3 px-md-5">Contact</Link>
           </div>
         </div>
       </div>

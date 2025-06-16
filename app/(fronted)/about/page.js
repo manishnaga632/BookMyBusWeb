@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 export default function AboutUs() {
   const [travelers, setTravelers] = useState(0);
@@ -76,8 +77,8 @@ export default function AboutUs() {
         <div className="row py-5">
           <div className="col-12 text-center">
             <h1 className="display-2 text-uppercase text-white mb-md-4">About BookMyBus</h1>
-            <a href="/" className="btn btn-primary py-md-3 px-md-5 me-3">Home</a>
-            <a href="/about" className="btn btn-light py-md-3 px-md-5">About</a>
+            <Link href="/" className="btn btn-primary py-md-3 px-md-5 me-3">Home</Link>
+            <Link href="/about" className="btn btn-light py-md-3 px-md-5">About</Link>
           </div>
         </div>
       </div>
@@ -91,7 +92,7 @@ export default function AboutUs() {
 
         <p className="introduction">
           Welcome to <strong>BookMyBus</strong> — your trusted partner in comfortable and affordable bus travel.
-          Since {adminInfo?.since || "2018"}, we've been connecting people across {adminInfo?.destinations_covered || "150"}+ destinations.
+          Since {adminInfo?.since || "2018"}, we have been connecting people across {adminInfo?.destinations_covered || "150"}+ destinations.
         </p>
 
         {/* Stats Section */}
@@ -190,7 +191,7 @@ export default function AboutUs() {
         <div className="thank-you-section text-center">
           <h2 className="thank-you-title">Thank You for Choosing BookMyBus!</h2>
           <p className="thank-you-description">
-            We are honored to be your travel partner. Let's journey together across India! 🚌✨
+            We are honored to be your travel partner. Let s journey together across India! 🚌✨
           </p>
           <p className="mt-3">
             <strong>Headquarters:</strong> {adminInfo?.address || "123 Jaipur, India"}

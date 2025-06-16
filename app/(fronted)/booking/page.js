@@ -113,7 +113,7 @@ export default function BookingList() {
       {bookings.length === 0 ? (
         <div className="booking-empty-state">
           <h3>No bookings found</h3>
-          <p>You haven't made any upcoming bookings yet.</p>
+          <p>You have not made any upcoming bookings yet.</p>
           <button onClick={() => router.push('/')} className="booking-btn">Book a Trip</button>
         </div>
       ) : (
