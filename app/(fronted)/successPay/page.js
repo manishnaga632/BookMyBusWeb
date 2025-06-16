@@ -1,120 +1,6 @@
-// "use client";
-// import { useEffect, useState } from "react";
-// import { useRouter, useSearchParams } from "next/navigation";
-// import axios from "axios";
-// import { useUser } from "@/context/UserContext";
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-// const SuccessPage = () => {
-//   const router = useRouter();
-//   const searchParams = useSearchParams();
-//   const sessionId = searchParams.get("session_id");
-//   const { userInfo } = useUser();
-
-//   const [loading, setLoading] = useState(true);
-//   const [bookingData, setBookingData] = useState(null);
-//   const [error, setError] = useState(null);
-
-//   useEffect(() => {
-//     const completeBooking = async () => {
-//       try {
-//         if (!sessionId || !sessionId.startsWith("cs_")) {
-//           throw new Error("Invalid payment session ID");
-//         }
-
-//         // Step 1: Verify payment
-//         const verificationRes = await fetch(`/api/stripe?session_id=${sessionId}`);
-
-//         let verificationData = {};
-//         try {
-//           verificationData = await verificationRes.json();
-//         } catch (jsonError) {
-//           throw new Error("Invalid JSON response from payment verification API");
-//         }
-
-//         if (!verificationRes.ok) {
-//           throw new Error(verificationData.error || "Payment verification failed");
-//         }
-
-//         // Step 2: Create booking
-//         const bookingRes = await axios.post(
-//           `${process.env.NEXT_PUBLIC_API_URL}/booking/create`,
-//           {
-//             user_id: Number(verificationData.metadata.user_id),
-//             travel_id: Number(verificationData.metadata.travel_id),
-//             book_seats: Number(verificationData.metadata.seats),
-//             total_price: Number(verificationData.metadata.price),
-//           },
-//           {
-//             headers: {
-//               "Content-Type": "application/json",
-//             },
-//           }
-//         );
-
-//         setBookingData(bookingRes.data);
-//       } catch (err) {
-//         console.error("Booking completion error:", err);
-//         setError(err.response?.data?.error || err.message || "Booking failed");
-
-//         if (
-//           err.message.includes("verification failed") ||
-//           err.message.includes("Invalid JSON")
-//         ) {
-//           setTimeout(() => router.push("/booknow"), 3000);
-//         }
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     if (sessionId) completeBooking();
-//   }, [sessionId, router]);
-
-//   if (loading) {
-//     return (
-//       <div className="flex flex-col items-center justify-center min-h-[300px]">
-//         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-//         <p>Finalizing your booking...</p>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="max-w-md mx-auto p-6 bg-red-50 rounded-lg mt-10">
-//         <h2 className="text-xl font-bold text-red-600 mb-2">Booking Error</h2>
-//         <p className="mb-4">{error}</p>
-//         <button
-//           onClick={() => router.push("/booknow")}
-//           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-//         >
-//           Back to Booking
-//         </button>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow mt-10">
-//       <h1 className="text-2xl font-bold text-green-600 mb-4">Booking Confirmed!</h1>
-//       {bookingData && (
-//         <div className="space-y-2 mb-6">
-//           <p><strong>Booking ID:</strong> {bookingData.id}</p>
-//           <p><strong>Seats:</strong> {bookingData.book_seats}</p>
-//           <p><strong>Total Paid:</strong> ₹{bookingData.total_price}</p>
-//         </div>
-//       )}
-//       <button
-//         onClick={() => router.push("/bookings")}
-//         className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600"
-//       >
-//         View My Bookings
-//       </button>
-//     </div>
-//   );
-// };
-
-// export default SuccessPage;
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -138,10 +24,9 @@ const SuccessPage = () => {
           throw new Error("Invalid payment session ID");
         }
 
-        // Step 1: Verify payment
         const verificationRes = await fetch(`/api/stripe?session_id=${sessionId}`);
-
         let verificationData = {};
+
         try {
           verificationData = await verificationRes.json();
         } catch (jsonError) {
@@ -152,7 +37,6 @@ const SuccessPage = () => {
           throw new Error(verificationData.error || "Payment verification failed");
         }
 
-        // Step 2: Create booking
         const bookingRes = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/booking/create`,
           {
@@ -161,11 +45,7 @@ const SuccessPage = () => {
             book_seats: Number(verificationData.metadata.seats),
             total_price: Number(verificationData.metadata.price),
           },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
+          { headers: { "Content-Type": "application/json" } }
         );
 
         setBookingData(bookingRes.data);
@@ -173,10 +53,7 @@ const SuccessPage = () => {
         console.error("Booking completion error:", err);
         setError(err.response?.data?.error || err.message || "Booking failed");
 
-        if (
-          err.message.includes("verification failed") ||
-          err.message.includes("Invalid JSON")
-        ) {
+        if (err.message.includes("verification failed") || err.message.includes("Invalid JSON")) {
           setTimeout(() => router.push("/booknow"), 3000);
         }
       } finally {
@@ -188,32 +65,35 @@ const SuccessPage = () => {
   }, [sessionId, router]);
 
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '300px'
-      }}>
-        <div style={{
-          animation: 'spin 1s linear infinite',
-          borderRadius: '50%',
-          height: '48px',
-          width: '48px',
-          border: '3px solid #3b82f6',
-          borderTopColor: 'transparent',
-          marginBottom: '16px'
-        }}></div>
-        <p style={{ color: '#4b5563' }}>Finalizing your booking...</p>
-        <style jsx>{`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
-    );
+    return null; // Loading state now handled by loading.js
   }
+  // if (loading) {
+  //   return (
+  //     <div style={{
+  //       display: 'flex',
+  //       flexDirection: 'column',
+  //       alignItems: 'center',
+  //       justifyContent: 'center',
+  //       minHeight: '300px'
+  //     }}>
+  //       <div style={{
+  //         animation: 'spin 1s linear infinite',
+  //         borderRadius: '50%',
+  //         height: '48px',
+  //         width: '48px',
+  //         border: '3px solid #3b82f6',
+  //         borderTopColor: 'transparent',
+  //         marginBottom: '16px'
+  //       }}></div>
+  //       <p style={{ color: '#4b5563' }}>Finalizing your booking...</p>
+  //       <style jsx>{`
+  //         @keyframes spin {
+  //           to { transform: rotate(360deg); }
+  //         }
+  //       `}</style>
+  //     </div>
+  //   );
+  // }
 
   if (error) {
     return (
@@ -269,7 +149,7 @@ const SuccessPage = () => {
         marginBottom: '1rem',
         textAlign: 'center'
       }}>Booking Confirmed!</h1>
-      
+
       {bookingData && (
         <div style={{
           display: 'grid',
@@ -287,7 +167,7 @@ const SuccessPage = () => {
           </p>
         </div>
       )}
-      
+
       <button
         onClick={() => router.push("/booking")}
         style={{
