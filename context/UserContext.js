@@ -13,6 +13,7 @@ export const UserProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false); // New state for login loading
 
   const router = useRouter();
 
@@ -43,7 +44,7 @@ export const UserProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      setLoading(true);
+      setLoginLoading(true); // Set login-specific loading state
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, { email, password });
       const { access_token } = response.data;
 
@@ -61,7 +62,7 @@ export const UserProvider = ({ children }) => {
       setToken(access_token);
       setUserInfo(userProfile);
 
-      // ✅ Redirect after login
+      // Redirect after login
       const redirectTo = localStorage.getItem('redirectAfterLogin') || '/profile';
       localStorage.removeItem('redirectAfterLogin');
       router.push(redirectTo);
@@ -73,7 +74,7 @@ export const UserProvider = ({ children }) => {
         message: error.response?.data?.detail || 'Login failed',
       };
     } finally {
-      setLoading(false);
+      setLoginLoading(false); // Reset login-specific loading state
     }
   };
 
@@ -108,7 +109,7 @@ export const UserProvider = ({ children }) => {
     setToken(null);
     setUserInfo(null);
     setAuthChecked(true);
-    router.push('/login'); // ✅ Redirect after logout
+    router.push('/login');
   };
 
   const refreshUser = async () => {
@@ -122,6 +123,7 @@ export const UserProvider = ({ children }) => {
         user: userInfo,
         token,
         loading,
+        loginLoading, // Expose the loginLoading state
         authChecked,
         login,
         logout,

@@ -1,5 +1,7 @@
+
+
 'use client';
-import { useState, useEffect } from 'react'; // Added useState import
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminContext } from '@/context/AdminContext';
 
@@ -8,6 +10,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -19,15 +22,19 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    const result = await login(email, password);
-    if (result.success) {
-      router.replace('/admin/profile');
-    } else {
-      setError(result.message || 'Only admin access');
+    setIsSubmitting(true);
+    
+    try {
+      const result = await login(email, password);
+      if (!result.success) {
+        setError(result.message || 'Only admin access');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (!authChecked || loading) return null;
+  if (!authChecked) return null;
 
   return (
     <div className="login-container">
@@ -43,6 +50,7 @@ export default function LoginPage() {
           placeholder="Email"
           required
           className="login-input"
+          disabled={isSubmitting}
         />
         <input
           type="password"
@@ -51,9 +59,21 @@ export default function LoginPage() {
           placeholder="Password"
           required
           className="login-input"
+          disabled={isSubmitting}
         />
-
-        <button type="submit" className="login-button">Login</button>
+        <button
+          type="submit"
+          className="login-button"
+          disabled={isSubmitting || loading}
+        >
+          {(isSubmitting || loading) ? (
+            <>
+              <span className="spinner"></span> Authenticating...
+            </>
+          ) : (
+            'Login'
+          )}
+        </button>
       </form>
     </div>
   );

@@ -1,3 +1,6 @@
+
+
+
 'use client';
 
 import { useForm } from "react-hook-form";
@@ -8,7 +11,7 @@ import { toast } from "sonner";
 import { useUser } from '@/context/UserContext';
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { FaBus, FaRoute, FaTicketAlt, FaClock, FaUsers, FaToggleOn, FaToggleOff } from "react-icons/fa";
+import { FaBus, FaRoute, FaTicketAlt, FaClock, FaUsers, FaToggleOn, FaToggleOff, FaSpinner } from "react-icons/fa";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -57,7 +60,7 @@ const successStories = [
 
 export default function LoginPage() {
   const router = useRouter();
-  const { userInfo, login, loading } = useUser();
+  const { userInfo, login, loading: contextLoading, loginLoading } = useUser();
 
   const [currentContent, setCurrentContent] = useState({});
   const [showQuotes, setShowQuotes] = useState(true);
@@ -80,7 +83,7 @@ export default function LoginPage() {
   }, [showQuotes]);
 
   useEffect(() => {
-    if (userInfo && !loading) {
+    if (userInfo && !contextLoading) {
       router.push('/');
       return;
     }
@@ -94,12 +97,12 @@ export default function LoginPage() {
 
     const interval = setInterval(updateContent, 8000);
     return () => clearInterval(interval);
-  }, [userInfo, loading, router, updateContent]);
+  }, [userInfo, contextLoading, router, updateContent]);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     setError,
   } = useForm({
     resolver: zodResolver(formSchema),
@@ -108,18 +111,13 @@ export default function LoginPage() {
   const onSubmit = async (data) => {
     try {
       const result = await login(data.email, data.password);
-      if (result.success) {
-        toast.success("Login successful! Redirecting to your dashboard...");
-        router.push('/');
-      } else {
-        toast.error(result.message);
+      if (!result.success) {
         setError("root", {
           type: "manual",
           message: result.message || "Login failed",
         });
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
       setError("root", {
         type: "manual",
         message: "An unexpected error occurred. Please try again.",
@@ -127,11 +125,13 @@ export default function LoginPage() {
     }
   };
 
-  if (loading || userInfo) {
+  if (contextLoading) {
     return (
       <div className="bus-auth-container">
         <div className="text-center">
-          <div className="spinner"></div>
+          <div className="spinner">
+            <FaSpinner className="animate-spin" size={24} />
+          </div>
           <p>Checking authentication status...</p>
         </div>
       </div>
@@ -151,8 +151,13 @@ export default function LoginPage() {
           <button
             onClick={() => setShowQuotes(!showQuotes)}
             className="content-toggle-btn"
+            disabled={loginLoading}
           >
-            {showQuotes ? <><FaToggleOn /> Show Travel Tips</> : <><FaToggleOff /> Show Quotes</>}
+            {showQuotes ? (
+              <><FaToggleOn /> Show Travel Tips</>
+            ) : (
+              <><FaToggleOff /> Show Quotes</>
+            )}
           </button>
         </div>
 
@@ -224,7 +229,7 @@ export default function LoginPage() {
               placeholder="Enter your email"
               {...register("email")}
               className={errors.email ? 'bus-input-error' : 'bus-input'}
-              disabled={isSubmitting}
+              disabled={loginLoading}
             />
             {errors.email && <span className="bus-error-message">{errors.email.message}</span>}
           </div>
@@ -237,7 +242,7 @@ export default function LoginPage() {
               placeholder="Enter your password"
               {...register("password")}
               className={errors.password ? 'bus-input-error' : 'bus-input'}
-              disabled={isSubmitting}
+              disabled={loginLoading}
             />
             {errors.password && <span className="bus-error-message">{errors.password.message}</span>}
           </div>
@@ -246,11 +251,26 @@ export default function LoginPage() {
             <Link href="/forgot-password" className="bus-auth-link">Forgot password?</Link>
           </div>
 
-          <button type="submit" className="bus-auth-button" disabled={isSubmitting || loading}>
-            {isSubmitting ? <><span className="spinner"></span> Signing in...</> : 'Sign in to Your Account'}
+          <button
+            type="submit"
+            className="bus-auth-button"
+            disabled={loginLoading}
+          >
+            {loginLoading ? (
+              <>
+                <FaSpinner className="animate-spin mr-2" />
+                Authenticating...
+              </>
+            ) : (
+              'Sign in to Your Account'
+            )}
           </button>
 
-          {errors.root && <p className="bus-root-error">{errors.root.message}</p>}
+          {errors.root && (
+            <p className="bus-root-error">
+              {errors.root.message}
+            </p>
+          )}
 
           <div className="bus-auth-footer">
             <p>New to SwiftJourney? <Link href="/signup" className="bus-auth-link">Create an account</Link></p>
@@ -260,3 +280,9 @@ export default function LoginPage() {
     </div>
   );
 }
+
+
+
+
+
+ 
