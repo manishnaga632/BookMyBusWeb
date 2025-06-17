@@ -1,29 +1,10 @@
-"use client"; // Add this at the very top
+"use client";
 
 export default function Loading() {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '300px'
-    }}>
-      <div style={{
-        animation: 'spin 1s linear infinite',
-        borderRadius: '50%',
-        height: '48px',
-        width: '48px',
-        border: '3px solid #3b82f6',
-        borderTopColor: 'transparent',
-        marginBottom: '16px'
-      }}></div>
-      <p style={{ color: '#4b5563' }}>Verifying your payment...</p>
-      <style jsx>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+    <div className="flex flex-col items-center justify-center min-h-[300px]">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+      <p className="text-gray-600">Processing your payment...</p>
     </div>
   );
 }

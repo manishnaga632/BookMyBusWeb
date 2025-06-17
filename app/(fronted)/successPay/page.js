@@ -1,194 +1,112 @@
 
+
 "use client";
-
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import axios from "axios";
-import { useUser } from "@/context/UserContext";
+import { toast } from "react-hot-toast";
 
-const SuccessPage = () => {
+export default function SuccessPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get("session_id");
-  const { userInfo } = useUser();
-
-  const [loading, setLoading] = useState(true);
-  const [bookingData, setBookingData] = useState(null);
-  const [error, setError] = useState(null);
+  const sessionId = useSearchParams().get("session_id");
+  const [status, setStatus] = useState("loading");
+  const [booking, setBooking] = useState(null);
+  const [payment, setPayment] = useState(null);
 
   useEffect(() => {
     const completeBooking = async () => {
       try {
-        if (!sessionId || !sessionId.startsWith("cs_")) {
-          throw new Error("Invalid payment session ID");
-        }
+        if (!sessionId) throw new Error("No session ID");
 
-        const verificationRes = await fetch(`/api/stripe?session_id=${sessionId}`);
-        let verificationData = {};
-
-        try {
-          verificationData = await verificationRes.json();
-        } catch (jsonError) {
-          throw new Error("Invalid JSON response from payment verification API");
-        }
-
-        if (!verificationRes.ok) {
-          throw new Error(verificationData.error || "Payment verification failed");
-        }
+        const stripeRes = await fetch(`/api/stripe?session_id=${sessionId}`);
+        if (!stripeRes.ok) throw new Error("Payment verification failed");
+        const stripeData = await stripeRes.json();
+        setPayment(stripeData);
 
         const bookingRes = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/booking/create`,
           {
-            user_id: Number(verificationData.metadata.user_id),
-            travel_id: Number(verificationData.metadata.travel_id),
-            book_seats: Number(verificationData.metadata.seats),
-            total_price: Number(verificationData.metadata.price),
+            user_id: stripeData.metadata.user_id,
+            travel_id: stripeData.metadata.travel_id,
+            book_seats: stripeData.metadata.seats,
+            total_price: stripeData.metadata.price,
+            payment_id: sessionId,
           },
-          { headers: { "Content-Type": "application/json" } }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
         );
 
-        setBookingData(bookingRes.data);
+        setBooking(bookingRes.data);
+        setStatus("success");
       } catch (err) {
-        console.error("Booking completion error:", err);
-        setError(err.response?.data?.error || err.message || "Booking failed");
-
-        if (err.message.includes("verification failed") || err.message.includes("Invalid JSON")) {
-          setTimeout(() => router.push("/booknow"), 3000);
-        }
-      } finally {
-        setLoading(false);
+        console.error(err);
+        setStatus("error");
+        toast.error("Something went wrong");
+        setTimeout(() => router.push("/booknow"), 3000);
       }
     };
 
     if (sessionId) completeBooking();
   }, [sessionId, router]);
 
-  if (loading) {
-    return null; // Loading state now handled by loading.js
-  }
-  // if (loading) {
-  //   return (
-  //     <div style={{
-  //       display: 'flex',
-  //       flexDirection: 'column',
-  //       alignItems: 'center',
-  //       justifyContent: 'center',
-  //       minHeight: '300px'
-  //     }}>
-  //       <div style={{
-  //         animation: 'spin 1s linear infinite',
-  //         borderRadius: '50%',
-  //         height: '48px',
-  //         width: '48px',
-  //         border: '3px solid #3b82f6',
-  //         borderTopColor: 'transparent',
-  //         marginBottom: '16px'
-  //       }}></div>
-  //       <p style={{ color: '#4b5563' }}>Finalizing your booking...</p>
-  //       <style jsx>{`
-  //         @keyframes spin {
-  //           to { transform: rotate(360deg); }
-  //         }
-  //       `}</style>
-  //     </div>
-  //   );
-  // }
-
-  if (error) {
+  if (status === "loading")
     return (
-      <div style={{
-        maxWidth: '28rem',
-        margin: '0 auto',
-        padding: '1.5rem',
-        backgroundColor: '#fef2f2',
-        borderRadius: '0.5rem',
-        marginTop: '2.5rem'
-      }}>
-        <h2 style={{
-          fontSize: '1.25rem',
-          fontWeight: '700',
-          color: '#dc2626',
-          marginBottom: '0.5rem'
-        }}>Booking Error</h2>
-        <p style={{ marginBottom: '1rem', color: '#4b5563' }}>{error}</p>
+      <div className="flex items-center justify-center h-screen bg-white text-gray-600">
+        <div className="animate-spin h-10 w-10 border-4 border-green-500 border-t-transparent rounded-full mr-4" />
+        Processing your booking...
+      </div>
+    );
+
+  if (status === "error")
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-white text-center px-4">
+        <h2 className="text-3xl text-red-600 font-bold mb-2">Payment Failed</h2>
+        <p className="mb-6 text-gray-500">Redirecting to booking page...</p>
         <button
           onClick={() => router.push("/booknow")}
-          style={{
-            backgroundColor: '#3b82f6',
-            color: 'white',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.375rem',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+          className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-2 rounded-full shadow-lg transition-all"
         >
-          Back to Booking
+          Retry Booking
         </button>
       </div>
     );
-  }
 
   return (
-    <div style={{
-      maxWidth: '28rem',
-      margin: '0 auto',
-      padding: '1.5rem',
-      backgroundColor: 'white',
-      borderRadius: '0.5rem',
-      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      marginTop: '2.5rem'
-    }}>
-      <h1 style={{
-        fontSize: '1.5rem',
-        fontWeight: '700',
-        color: '#16a34a',
-        marginBottom: '1rem',
-        textAlign: 'center'
-      }}>Booking Confirmed!</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-white via-blue-50 to-green-50 p-4 text-center">
+      <h1 className="text-4xl font-extrabold text-green-600 mb-4">🎉 Booking Confirmed!</h1>
 
-      {bookingData && (
-        <div style={{
-          display: 'grid',
-          gap: '0.5rem',
-          marginBottom: '1.5rem'
-        }}>
-          <p style={{ color: '#4b5563' }}>
-            <strong style={{ color: '#1f2937' }}>Booking ID:</strong> {bookingData.id}
-          </p>
-          <p style={{ color: '#4b5563' }}>
-            <strong style={{ color: '#1f2937' }}>Seats:</strong> {bookingData.book_seats}
-          </p>
-          <p style={{ color: '#4b5563' }}>
-            <strong style={{ color: '#1f2937' }}>Total Paid:</strong> ₹{bookingData.total_price}
-          </p>
-        </div>
-      )}
+      <div className="bg-white border border-green-200 shadow-md rounded-xl p-6 w-full max-w-md mb-6">
+        <Detail label="Booking ID" value={booking?.id} />
+        <Detail label="From" value={payment?.metadata?.from_location} />
+        <Detail label="To" value={payment?.metadata?.to_location} />
+        <Detail label="Seats" value={payment?.metadata?.seats} />
+        <Detail label="Total Paid" value={`₹${payment?.amount_total / 100}`} />
+      </div>
 
       <button
         onClick={() => router.push("/booking")}
-        style={{
-          width: '100%',
-          backgroundColor: '#16a34a',
-          color: 'white',
-          padding: '0.5rem',
-          borderRadius: '0.375rem',
-          border: 'none',
-          cursor: 'pointer',
-          fontWeight: '600',
-          transition: 'background-color 0.2s'
-        }}
-        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#15803d'}
-        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#16a34a'}
+        className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium px-6 py-2 rounded-full shadow-lg transition-all"
       >
         View My Bookings
       </button>
     </div>
   );
-};
+}
 
-export default SuccessPage;
+function Detail({ label, value }) {
+  return (
+    <div className="flex justify-between py-2 border-b border-dashed border-gray-300 text-gray-700">
+      <span className="font-medium">{label}:</span>
+      <span>{value}</span>
+    </div>
+  );
+}
+
+
+
+
+
+
