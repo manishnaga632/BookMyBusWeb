@@ -7,6 +7,7 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
+
 const BookNow = () => {
   const [buses, setBuses] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import Image from 'next/image';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -19,7 +20,7 @@ const AddTravel = () => {
 
   const validateField = (name, value) => {
     let error = '';
-    
+
     if (name === 'bus_image' && !value) {
       error = 'Bus image URL is required';
     }
@@ -32,24 +33,24 @@ const AddTravel = () => {
     else if ((name === 'available_seats' || name === 'price_per_seat') && value < 0) {
       error = 'Cannot be negative';
     }
-    
+
     return error;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     let processedValue = value;
-    
+
     // For number fields, convert to integer and prevent negative values
     if (name === 'available_seats' || name === 'price_per_seat') {
       processedValue = Math.max(0, parseInt(value) || 0);
     }
-    
+
     setTravel(prev => ({
       ...prev,
       [name]: processedValue
     }));
-    
+
     // Validate the field
     const error = validateField(name, processedValue);
     setErrors(prev => ({
@@ -61,23 +62,23 @@ const AddTravel = () => {
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
-    
+
     // Required fields
     if (!travel.bus_image.trim()) {
       newErrors.bus_image = 'Bus image URL is required';
       isValid = false;
     }
-    
+
     if (!travel.from_location.trim()) {
       newErrors.from_location = 'From location is required';
       isValid = false;
     }
-    
+
     if (!travel.to_location.trim()) {
       newErrors.to_location = 'To location is required';
       isValid = false;
     }
-    
+
     if (!travel.time.trim()) {
       newErrors.time = 'Time is required';
       isValid = false;
@@ -85,30 +86,30 @@ const AddTravel = () => {
       newErrors.time = 'Invalid time format (HH:MM)';
       isValid = false;
     }
-    
+
     // Numeric fields validation
     if (travel.available_seats < 0) {
       newErrors.available_seats = 'Cannot be negative';
       isValid = false;
     }
-    
+
     if (travel.price_per_seat < 0) {
       newErrors.price_per_seat = 'Cannot be negative';
       isValid = false;
     }
-    
+
     setErrors(newErrors);
     return isValid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       toast.error('Please fix the errors in the form');
       return;
     }
-    
+
     try {
       const token = localStorage.getItem('admin_token');
       const response = await axios.post('http://127.0.0.1:8000/travels/create', travel, {
@@ -124,7 +125,7 @@ const AddTravel = () => {
   return (
     <div className="travel-add-container">
       <ToastContainer position="top-right" autoClose={3000} />
-      
+
       <div className="travel-add-header">
         <button onClick={() => router.push('/admin/travels')} className="btn btn-back">
           🔙 Back to Travels
@@ -146,12 +147,15 @@ const AddTravel = () => {
             {errors.bus_image && <span className="error-message">{errors.bus_image}</span>}
             {travel.bus_image && (
               <div className="image-preview">
-                <img 
-                  src={travel.bus_image} 
-                  alt="Bus Preview" 
+                <Image
+
+                  src={travel.bus_image}
+                  alt="Bus Preview"
                   className="preview-image"
+                  width={100}
+                  height={100}
                   onError={(e) => {
-                    e.target.onerror = null; 
+                    e.target.onerror = null;
                     e.target.src = 'https://via.placeholder.com/300x150?text=Invalid+Image+URL';
                   }}
                 />
@@ -227,9 +231,9 @@ const AddTravel = () => {
           <button type="submit" className="btn btn-save">
             Add Travel
           </button>
-          <button 
-            type="button" 
-            onClick={() => router.push('/admin/travels')} 
+          <button
+            type="button"
+            onClick={() => router.push('/admin/travels')}
             className="btn btn-cancel"
           >
             Cancel
