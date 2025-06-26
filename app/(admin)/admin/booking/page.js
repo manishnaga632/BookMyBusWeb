@@ -4,6 +4,9 @@ import axios from 'axios';
 import { useAdminContext } from '@/context/AdminContext';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 
 const BookingManagerPage = () => {
   const { token } = useAdminContext();
@@ -31,7 +34,7 @@ const BookingManagerPage = () => {
   }, [token]);
 
   // Filter bookings based on search term
-  const filteredBookings = bookings.filter(booking => 
+  const filteredBookings = bookings.filter(booking =>
     booking.id.toString().includes(searchTerm) ||
     booking.user_id.toString().includes(searchTerm) ||
     booking.travel_id.toString().includes(searchTerm)
@@ -53,11 +56,29 @@ const BookingManagerPage = () => {
 
   // Export to PDF
   const exportToPDF = () => {
-    const table = document.getElementById('bookings-table');
-    const html = table.outerHTML;
-    const blob = new Blob([html], { type: 'application/pdf' });
-    saveAs(blob, 'bookings.pdf');
+    const doc = new jsPDF();
+    doc.text('Bookings Report', 14, 15);
+
+    const tableData = filteredBookings.map((booking) => [
+      booking.id,
+      booking.user_id,
+      booking.travel_id,
+      booking.book_seats,
+      `₹${booking.price_per_seat}`,
+      `₹${booking.total_price}`,
+      new Date(booking.created_at).toLocaleString(),
+    ]);
+
+    autoTable(doc, {
+      head: [['Booking ID', 'User ID', 'Travel ID', 'Seats', 'Price/Seat', 'Total', 'Booked At']],
+      body: tableData,
+      startY: 25,
+      styles: { fontSize: 8 },
+    });
+
+    doc.save('bookings.pdf');
   };
+
 
   // Update booking seats
   const updateSeats = async (bookingId, newSeats) => {
@@ -98,7 +119,7 @@ const BookingManagerPage = () => {
   return (
     <div className="cyber-admin-container">
       <h1 className="cyber-title">BOOKING MANAGER</h1>
-      
+
       {/* Search and Export Controls */}
       <div className="cyber-controls">
         <div className="cyber-search">
@@ -110,7 +131,7 @@ const BookingManagerPage = () => {
           />
           <span className="cyber-search-icon">🔍</span>
         </div>
-        
+
         <div className="cyber-export">
           <button onClick={exportToExcel} className="cyber-btn">
             Export Excel
@@ -146,8 +167,8 @@ const BookingManagerPage = () => {
                   <td>{booking.user_id}</td>
                   <td>{booking.travel_id}</td>
                   <td>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       defaultValue={booking.book_seats}
                       onBlur={(e) => updateSeats(booking.id, e.target.value)}
                       className="cyber-input"
@@ -157,7 +178,7 @@ const BookingManagerPage = () => {
                   <td>₹{booking.total_price}</td>
                   <td>{new Date(booking.created_at).toLocaleString()}</td>
                   <td>
-                    <button 
+                    <button
                       onClick={() => cancelBooking(booking.id)}
                       className="cyber-btn cyber-delete"
                     >
@@ -178,7 +199,7 @@ const BookingManagerPage = () => {
               >
                 Previous
               </button>
-              
+
               {Array.from({ length: totalPages }, (_, i) => (
                 <button
                   key={i}
@@ -188,7 +209,7 @@ const BookingManagerPage = () => {
                   {i + 1}
                 </button>
               ))}
-              
+
               <button
                 onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
                 disabled={currentPage === totalPages}
