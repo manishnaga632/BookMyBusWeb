@@ -246,10 +246,10 @@ export default function LoginPage() {
             />
             {errors.password && <span className="bus-error-message">{errors.password.message}</span>}
           </div>
-
+{/* 
           <div className="form-options">
             <Link href="/forgot-password" className="bus-auth-link">Forgot password?</Link>
-          </div>
+          </div> */}
 
           <button
             type="submit"
